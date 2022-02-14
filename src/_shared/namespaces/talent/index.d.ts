@@ -1,7 +1,8 @@
 namespace TalentNamespace {
   export interface TalentMetadata {
     next: string | null;
-    total: number;
+    prev: string | null;
+    limit: number;
   }
   export interface Talent {
     uuid: string;

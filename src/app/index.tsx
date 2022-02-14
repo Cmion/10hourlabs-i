@@ -8,8 +8,19 @@ import { TalentsList } from "../components/talents-list";
 const { TabPane } = Tabs;
 
 export const App = () => {
-  const { getTalents, talents, status, saveTalent, savedTalents, undoSaveTalent } =
-    useContext(TalentsContext);
+  const {
+    getTalents,
+    talents,
+    status,
+    onSaveTalent,
+    savedTalents,
+    undoSaveTalent,
+    metadata,
+    onPaginate,
+    onHideTalent,
+    onRestoreTalent,
+    hiddenTalents,
+  } = useContext(TalentsContext);
 
   const onGetTalents = async () => {
     await getTalents();
@@ -26,8 +37,12 @@ export const App = () => {
           <TalentsList
             talents={talents}
             status={status}
-            saveTalent={saveTalent}
+            onSaveTalent={onSaveTalent}
             savedTalents={savedTalents}
+            metadata={metadata}
+            onPaginate={onPaginate}
+            onHideTalent={onHideTalent}
+            onRestoreTalent={onRestoreTalent}
           />
         </TabPane>
         <TabPane tab="Saved" key="saved">
@@ -39,7 +54,12 @@ export const App = () => {
           />
         </TabPane>
         <TabPane tab="Hidden" key="hidden">
-          Content of Tab Pane 3
+          <TalentsList
+            talents={hiddenTalents}
+            tabType={"hidden"}
+            status={status}
+            onRestoreTalent={onRestoreTalent}
+          />
         </TabPane>
       </Tabs>
     </div>

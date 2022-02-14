@@ -1,5 +1,5 @@
 import { capitalize, get } from "lodash";
-import { Button, Descriptions, Popover, Tag } from "antd";
+import { Button, Descriptions, Popover, Space, Tag, Popconfirm } from "antd";
 import { format } from "date-fns";
 
 export const talentsTableColumn = (props: Record<string, any>) => {
@@ -69,7 +69,7 @@ export const talentsTableColumn = (props: Record<string, any>) => {
         );
         return (
           <Popover content={content} title="Skills" trigger="click">
-            <Button>See Skills</Button>
+            <Button>See Portfolio</Button>
           </Popover>
         );
       },
@@ -210,17 +210,27 @@ export const talentsTableColumn = (props: Record<string, any>) => {
 
   if (props.tabType === "all") {
     return Array.of(...defColumns, {
-      title: "Action",
-      dataIndex: "action",
-      key: "action",
+      title: "Actions",
+      dataIndex: "actions",
+      key: "actions",
       render: (text: string, record: Record<string, any>) => {
         return (
-          <Button
-            disabled={props.isSaved(record.uuid)}
-            onClick={() => props.saveTalent(record)}
-          >
-            Save
-          </Button>
+          <Space size={20}>
+            <Button
+              disabled={props.isSaved(record.uuid)}
+              onClick={() => props.onSaveTalent(record)}
+            >
+              Save
+            </Button>
+            <Popconfirm
+              title="Are you sure to delete this task?"
+              onConfirm={() => props.onHideTalent(record)}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button danger>Hide</Button>
+            </Popconfirm>
+          </Space>
         );
       },
     });
@@ -228,14 +238,27 @@ export const talentsTableColumn = (props: Record<string, any>) => {
 
   if (props.tabType === "saved") {
     return Array.of(...defColumns, {
-      title: "Action",
-      dataIndex: "action",
-      key: "action",
+      title: "Actions",
+      dataIndex: "actions",
+      key: "actions",
       render: (text: string, record: Record<string, any>) => {
         return (
           <Button onClick={() => props.undoSaveTalent(record.uuid)} danger>
             Remove
           </Button>
+        );
+      },
+    });
+  }
+
+  if (props.tabType === "hidden") {
+    return Array.of(...defColumns, {
+      title: "Actions",
+      dataIndex: "actions",
+      key: "actions",
+      render: (text: string, record: Record<string, any>) => {
+        return (
+          <Button onClick={() => props.onRestoreTalent(record)}>Restore</Button>
         );
       },
     });
