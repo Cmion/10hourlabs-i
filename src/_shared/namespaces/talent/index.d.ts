@@ -1,7 +1,7 @@
 namespace TalentNamespace {
   export interface TalentMetadata {
     next: string | null;
-    prev: string | null;
+    prev: string[];
     limit: number;
   }
   export interface Talent {

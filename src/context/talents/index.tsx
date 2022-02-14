@@ -1,6 +1,6 @@
-import { ReactNode, createContext, useState } from "react";
+import { createContext, ReactNode, useState } from "react";
 import createApiRequest from "../../_shared/api";
-import { message } from "antd";
+import { message, notification } from "antd";
 import { pick } from "lodash";
 
 export enum Status {
@@ -40,7 +40,7 @@ export const TalentsContext = createContext<TalentsContextValues>({
   status: Status.Idle,
   metadata: {
     next: null,
-    prev: null,
+    prev: [],
     limit: 10,
   },
 });
@@ -53,7 +53,7 @@ export const TalentsProvider = (props: TalentsContextProps) => {
   const [metadata, setMetadata] = useState<TalentNamespace.TalentMetadata>({
     limit: 10,
     next: null,
-    prev: null,
+    prev: [],
   });
 
   const [selectedTalents, setSelectedTalents] = useState<
@@ -66,6 +66,7 @@ export const TalentsProvider = (props: TalentsContextProps) => {
 
   const getTalents = async (options: { params?: Record<string, any> } = {}) => {
     setStatus(Status.Loading);
+    setHiddenTalents([]);
     try {
       const data = await createApiRequest({
         method: "GET",
@@ -75,11 +76,8 @@ export const TalentsProvider = (props: TalentsContextProps) => {
 
       setTalents((data as any).items as unknown as TalentNamespace.Talent[]);
       setMetadata((prevState) => {
-        const partialState = { prev: prevState.next };
-
         return {
           ...prevState,
-          ...partialState,
           ...(pick(data, [
             "total",
             "next",
@@ -103,11 +101,13 @@ export const TalentsProvider = (props: TalentsContextProps) => {
       const index = newTalents.findIndex((t) => t.uuid === talent.uuid);
       if (index === -1) {
         newTalents.push(talent);
+        notification.info({
+          message: `You have saved ${talent?.first_name ?? "N/A"}'s profile`,
+          placement: "bottomLeft",
+        });
       } else {
         newTalents[index] = talent;
       }
-
-      message.info("Profile saved");
 
       return newTalents;
     });
@@ -119,6 +119,12 @@ export const TalentsProvider = (props: TalentsContextProps) => {
       const index = newTalents.findIndex((t) => t.uuid === uuid);
       if (index !== -1) {
         newTalents.splice(index, 1);
+
+        const talent = newTalents[index];
+        notification.info({
+          message: `You have unsaved ${talent?.first_name ?? "N/A"}'s profile`,
+          placement: "bottomLeft",
+        });
       }
 
       return newTalents;
@@ -133,13 +139,31 @@ export const TalentsProvider = (props: TalentsContextProps) => {
           limit: metadata.limit,
         },
       });
+
+      setMetadata((prevState) => {
+        return {
+          ...prevState,
+          prev: prevState.next
+            ? [...prevState.prev, prevState.next]
+            : prevState.prev,
+        };
+      });
     }
     if (options.type === "prev") {
       getTalents({
         params: {
-          cursor: metadata.prev,
+          cursor: metadata.prev.at(-1),
           limit: metadata.limit,
         },
+      });
+
+      setMetadata((prevState) => {
+        const prevCursors = [...prevState.prev];
+        prevCursors.pop();
+        return {
+          ...prevState,
+          prev: prevCursors,
+        };
       });
     }
     if (options.type === "limit") {
@@ -152,7 +176,7 @@ export const TalentsProvider = (props: TalentsContextProps) => {
       setMetadata((prev) => ({
         ...prev,
         limit: options?.limit ?? prev.limit,
-        prev: null,
+        prev: [],
         next: null,
       }));
     }
@@ -178,6 +202,11 @@ export const TalentsProvider = (props: TalentsContextProps) => {
         return newTalents;
       });
 
+      notification.info({
+        message: `You have ignored ${talent.first_name}'s profile`,
+        placement: "bottomLeft",
+      });
+
       return newHiddenTalents;
     });
   };
@@ -190,6 +219,11 @@ export const TalentsProvider = (props: TalentsContextProps) => {
         newHiddenTalents.splice(index, 1);
       }
       setTalents((prev) => [...prev, talent]);
+
+      notification.info({
+        message: `You have restored ${talent.first_name}'s profile`,
+        placement: "bottomLeft",
+      });
 
       return newHiddenTalents;
     });

@@ -1,8 +1,17 @@
-import { Table, Select, Button, Space } from "antd";
+import {
+  Table,
+  Select,
+  Button,
+  Space,
+  Input,
+  InputNumber,
+  Form,
+  FormInstance,
+} from "antd";
 import { Status } from "../../context";
 import { talentsTableColumn } from "../../_shared";
 import { ReactNode } from "react";
-import { isFunction } from "lodash";
+import { isEmpty, isFunction } from "lodash";
 
 interface TalentsListProps {
   talents: TalentNamespace.Talent[];
@@ -15,6 +24,9 @@ interface TalentsListProps {
   undoSaveTalent?: (uuid: string) => void;
   metadata?: TalentNamespace.TalentMetadata;
   onPaginate?: (options: { type: string; limit?: number }) => void;
+  onFilter?: (values: Record<string, any>) => void;
+  onFilterReset?: () => void;
+  filterForm?: FormInstance;
 }
 
 export const TalentsList = (props: TalentsListProps) => {
@@ -26,9 +38,12 @@ export const TalentsList = (props: TalentsListProps) => {
     tabType = "all",
     undoSaveTalent,
     metadata,
+    filterForm,
     onPaginate,
     onHideTalent,
     onRestoreTalent,
+    onFilter,
+    onFilterReset,
   } = props;
 
   const isSaved = (uuid: string) => {
@@ -50,12 +65,50 @@ export const TalentsList = (props: TalentsListProps) => {
 
   return (
     <div>
+      {tabType === "all" && (
+        <Form onFinish={onFilter} form={filterForm}>
+          <Space size={20} style={{ paddingBottom: 20 }}>
+            <Form.Item
+              noStyle
+              name={"job_title"}
+              rules={[{ whitespace: false }]}
+            >
+              <Input placeholder="Filter by job title" />
+            </Form.Item>
+            <Form.Item
+              noStyle
+              name={"years_of_experience"}
+              rules={[{ min: 0, type: "number" }]}
+            >
+              <InputNumber
+                min={0}
+                max={100}
+                style={{ width: 220 }}
+                placeholder="Filter by years of experience"
+              />
+            </Form.Item>
+            <Form.Item noStyle name={"city"} rules={[{ whitespace: false }]}>
+              <Input placeholder="Filter by city" />
+            </Form.Item>
+            <Form.Item noStyle name={"country"} rules={[{ whitespace: false }]}>
+              <Input placeholder="Filter by country" />
+            </Form.Item>
+            <Button type={"primary"} htmlType={"submit"}>
+              Filter
+            </Button>
+            <Button htmlType={"button"} onClick={onFilterReset}>
+              Reset
+            </Button>
+          </Space>
+        </Form>
+      )}
       <Table
         columns={columns}
         dataSource={talents}
         loading={status === Status.Loading}
         rowKey={(record: Record<string, any>) => record.uuid}
         pagination={false}
+        scroll={{ x: 1300 }}
       />
 
       {onPaginate && isFunction(onPaginate) && (
@@ -65,7 +118,7 @@ export const TalentsList = (props: TalentsListProps) => {
           align={"center"}
         >
           <Button
-            disabled={!metadata?.prev}
+            disabled={isEmpty(metadata?.prev)}
             onClick={() =>
               onPaginate({
                 type: "prev",

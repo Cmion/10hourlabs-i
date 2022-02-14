@@ -15,6 +15,7 @@ export const talentsTableColumn = (props: Record<string, any>) => {
           </span>
         );
       },
+      // fixed: "left" as any,
     },
     {
       title: "Preferred Job Title",
@@ -22,9 +23,16 @@ export const talentsTableColumn = (props: Record<string, any>) => {
       key: "preferred_job_title",
     },
     {
-      title: "Country",
-      dataIndex: "country",
-      key: "country",
+      title: "Location",
+      dataIndex: "location",
+      key: "location",
+      render: (text: string, record: Record<string, any>) => {
+        return (
+          <span>
+            {record.city}, {record.country}
+          </span>
+        );
+      },
     },
     {
       title: "Phone",
@@ -209,31 +217,40 @@ export const talentsTableColumn = (props: Record<string, any>) => {
   ];
 
   if (props.tabType === "all") {
-    return Array.of(...defColumns, {
-      title: "Actions",
-      dataIndex: "actions",
-      key: "actions",
-      render: (text: string, record: Record<string, any>) => {
-        return (
-          <Space size={20}>
-            <Button
-              disabled={props.isSaved(record.uuid)}
-              onClick={() => props.onSaveTalent(record)}
-            >
-              Save
-            </Button>
-            <Popconfirm
-              title="Are you sure to delete this task?"
-              onConfirm={() => props.onHideTalent(record)}
-              okText="Yes"
-              cancelText="No"
-            >
-              <Button danger>Hide</Button>
-            </Popconfirm>
-          </Space>
-        );
+    return [
+      ...defColumns,
+      {
+        title: "Actions",
+        dataIndex: "actions",
+        key: "actions",
+        // fixed: "right" as any,
+        // width: 200,
+        render: (text: string, record: Record<string, any>) => {
+          return (
+            <Space size={20}>
+              <Button
+                disabled={props.isSaved(record.uuid)}
+                onClick={() => props.onSaveTalent(record)}
+                type={"primary"}
+              >
+                Save
+              </Button>
+              <Popconfirm
+                title="Are you sure to hide this profile?"
+                onConfirm={() => props.onHideTalent(record)}
+                okText="Yes"
+                cancelText="No"
+                placement={"left"}
+              >
+                <Button disabled={props.isSaved(record.uuid)} danger>
+                  Ignore
+                </Button>
+              </Popconfirm>
+            </Space>
+          );
+        },
       },
-    });
+    ];
   }
 
   if (props.tabType === "saved") {
@@ -241,6 +258,7 @@ export const talentsTableColumn = (props: Record<string, any>) => {
       title: "Actions",
       dataIndex: "actions",
       key: "actions",
+      // fixed: "right" as any,
       render: (text: string, record: Record<string, any>) => {
         return (
           <Button onClick={() => props.undoSaveTalent(record.uuid)} danger>
@@ -256,6 +274,7 @@ export const talentsTableColumn = (props: Record<string, any>) => {
       title: "Actions",
       dataIndex: "actions",
       key: "actions",
+      // fixed: "right" as any,
       render: (text: string, record: Record<string, any>) => {
         return (
           <Button onClick={() => props.onRestoreTalent(record)}>Restore</Button>
